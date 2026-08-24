@@ -53,6 +53,9 @@ void medlink_cmd_time_sync(uint8_t *packet,
          minute,
          second);
 
+    setenv("TZ", "IST-5:30", 1);
+    tzset();
+
     struct tm tm_time = {0};
 
     tm_time.tm_year = year - 1900;
@@ -61,6 +64,7 @@ void medlink_cmd_time_sync(uint8_t *packet,
     tm_time.tm_hour = hour;
     tm_time.tm_min  = minute;
     tm_time.tm_sec  = second;
+
 
     time_t now = mktime(&tm_time);
 

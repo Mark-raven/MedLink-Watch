@@ -25,12 +25,13 @@ void app_main(void)
 
     ble_server_init();
 
+    // Initialize hardware/display BEFORE using it
+    display_manager_init();
+
     schedule_manager_init();
-    display_task_init();
 
     reminder_manager_init();
 
-    display_manager_init();
     motor_init();
 
     display_show_startup();
@@ -38,13 +39,15 @@ void app_main(void)
     display_show_boot();
 
     motor_startup_vibration();
-    vTaskDelay(pdMS_TO_TICKS(300));
+
+    vTaskDelay(pdMS_TO_TICKS(1000));
+
     motor_stop_vibration();
 
     vTaskDelay(pdMS_TO_TICKS(2000));
 
     scheduler_task_init();
-    
+
     display_show_home();
 
     while (1)

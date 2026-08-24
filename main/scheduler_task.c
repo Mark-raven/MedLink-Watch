@@ -3,7 +3,6 @@
 
 #include "reminder_manager.h"
 #include "display_manager.h"
-
 #include <time.h>
 #include <stdbool.h>
 
@@ -22,38 +21,46 @@ static struct tm current_time;
 static void scheduler_task(void *arg)
 {
     while (1)
-{
-    time_t now;
-    time(&now);
-
-    localtime_r(&now, &current_time);
-
-    uint8_t reminderHour;
-    uint8_t reminderMinute;
-
-    reminder_t reminder;
-
-    if (schedule_get_next_reminder(&reminder))
-{
-    if (current_time.tm_hour == reminder.hour &&
-        current_time.tm_min == reminder.minute)
     {
-        if (!reminder_triggered)
+        time_t now;
+        time(&now);
+
+        localtime_r(&now, &current_time);
+
+        ESP_LOGI(TAG,
+                 "ESP32 Time: %02d:%02d:%02d",
+                 current_time.tm_hour,
+                 current_time.tm_min,
+                 current_time.tm_sec);
+
+        reminder_t reminder;
+
+        if (schedule_get_next_reminder(&reminder))
         {
-            reminder_triggered = true;
+            if (current_time.tm_hour == reminder.hour &&
+                current_time.tm_min == reminder.minute)
+            {
+                if (!reminder_triggered)
+                {
+                    reminder_triggered = true;
 
-            ESP_LOGI(TAG, "Reminder Time Reached!");
-            reminder_start();
+                    ESP_LOGI(TAG,
+                             "Reminder Time Reached: %s",
+                             reminder.medicine_name);
+
+                    reminder_start();
+                }
+            }
+            else
+            {
+                reminder_triggered = false;
+            }
         }
-    }
-    else
-    {
-        reminder_triggered = false;
-    }
-}
 
-    vTaskDelay(pdMS_TO_TICKS(1000));
-    }   
+        display_show_home();
+
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
 }
 
 void scheduler_task_init(void)
@@ -77,7 +84,7 @@ bool scheduler_get_current_time(struct tm *time)
         return false;
     }
 
-   // *time = g_current_time;
+   *time = current_time;
 
     return true;
 }
