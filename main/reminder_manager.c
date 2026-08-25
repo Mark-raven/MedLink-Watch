@@ -25,4 +25,6 @@ void reminder_start(void)
     vTaskDelay(pdMS_TO_TICKS(3000));
 
     motor_off();
+
+    ESP_LOGI(TAG, "Reminder Finished");
 }

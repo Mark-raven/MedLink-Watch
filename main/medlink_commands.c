@@ -7,6 +7,7 @@
 #include <sys/time.h>
 
 #include "esp_log.h"
+#include <string.h>
 
 static const char *TAG = "COMMANDS";
 
@@ -106,7 +107,7 @@ void medlink_cmd_time_sync(uint8_t *packet,
 void medlink_cmd_set_schedule(uint8_t *packet,
                               uint16_t length)
 {
-    if (length < 3)
+    if (length < 4)
     {
         ESP_LOGE(TAG, "Invalid Schedule Packet");
         return;
@@ -121,12 +122,34 @@ void medlink_cmd_set_schedule(uint8_t *packet,
         return;
     }
 
-    ESP_LOGI(TAG,
-             "SET_SCHEDULE %02d:%02d",
-             hour,
-             minute);
+    char medicine_name[32] = {0};
 
-    //schedule_set(hour, minute);
+    uint16_t medicine_length = length - 3;
+
+    if (medicine_length >= sizeof(medicine_name))
+    {
+        medicine_length = sizeof(medicine_name) - 1;
+    }
+
+    memcpy(
+        medicine_name,
+        &packet[3],
+        medicine_length
+    );
+
+    medicine_name[medicine_length] = '\0';
+
+    ESP_LOGI(TAG,
+             "SET_SCHEDULE %02d:%02d - %s",
+             hour,
+             minute,
+             medicine_name);
+
+    schedule_set_reminder(
+        hour,
+        minute,
+        medicine_name
+    );
 
     medlink_notify("SCHEDULE OK");
 }

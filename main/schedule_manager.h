@@ -18,4 +18,8 @@ void schedule_manager_init(void);
 
 bool schedule_get_next_reminder(reminder_t *reminder);
 
+void schedule_set_reminder(uint8_t hour,
+                           uint8_t minute,
+                           const char *medicine_name);
+
 #endif

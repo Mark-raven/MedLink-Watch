@@ -1,8 +1,8 @@
 #include "scheduler_task.h"
 #include "schedule_manager.h"
-
 #include "reminder_manager.h"
 #include "display_manager.h"
+
 #include <time.h>
 #include <stdbool.h>
 
@@ -11,11 +11,9 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-
 static const char *TAG = "SCHEDULER";
 
 static bool reminder_triggered = false;
-
 static struct tm current_time;
 
 static void scheduler_task(void *arg)
@@ -37,6 +35,12 @@ static void scheduler_task(void *arg)
 
         if (schedule_get_next_reminder(&reminder))
         {
+            ESP_LOGI(TAG,
+                     "Checking Reminder: %s %02d:%02d",
+                     reminder.medicine_name,
+                     reminder.hour,
+                     reminder.minute);
+
             if (current_time.tm_hour == reminder.hour &&
                 current_time.tm_min == reminder.minute)
             {
@@ -74,7 +78,6 @@ void scheduler_task_init(void)
         NULL,
         5,
         NULL);
-
 }
 
 bool scheduler_get_current_time(struct tm *time)
@@ -84,7 +87,7 @@ bool scheduler_get_current_time(struct tm *time)
         return false;
     }
 
-   *time = current_time;
+    *time = current_time;
 
     return true;
 }

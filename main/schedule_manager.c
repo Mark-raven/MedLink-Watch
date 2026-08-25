@@ -13,8 +13,8 @@ void schedule_manager_init(void)
     memset(reminders, 0, sizeof(reminders));
 
     // Temporary test reminder
-    reminders[0].hour = 20;
-    reminders[0].minute = 30;
+    reminders[0].hour = 00;
+    reminders[0].minute = 29;
 
     strcpy(reminders[0].medicine_name, "Vitamin D");
 
@@ -42,4 +42,34 @@ bool schedule_get_next_reminder(reminder_t *reminder)
     *reminder = reminders[0];
 
     return true;
+}
+
+void schedule_set_reminder(
+    uint8_t hour,
+    uint8_t minute,
+    const char *medicine_name
+)
+{
+    reminders[0].hour = hour;
+    reminders[0].minute = minute;
+
+    strncpy(
+        reminders[0].medicine_name,
+        medicine_name,
+        sizeof(reminders[0].medicine_name) - 1
+    );
+
+    reminders[0].medicine_name[
+        sizeof(reminders[0].medicine_name) - 1
+    ] = '\0';
+
+    reminders[0].enabled = true;
+
+    ESP_LOGI(
+        TAG,
+        "Reminder Updated: %s %02d:%02d",
+        reminders[0].medicine_name,
+        reminders[0].hour,
+        reminders[0].minute
+    );
 }
