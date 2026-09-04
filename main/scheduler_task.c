@@ -7,13 +7,23 @@
 #include <stdbool.h>
 
 #include "esp_log.h"
-
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
 static const char *TAG = "SCHEDULER";
 
-static bool reminder_triggered = false;
+/*
+ * Stores the index of the reminder that was already triggered.
+ *
+ * Example:
+ *   0 = Vigra already triggered
+ *   1 = Para already triggered
+ *   2 = hitty already triggered
+ *
+ * -1 means no reminder has been triggered yet.
+ */
+static int last_triggered_reminder = -1;
+
 static struct tm current_time;
 
 static void scheduler_task(void *arg)
@@ -21,6 +31,7 @@ static void scheduler_task(void *arg)
     while (1)
     {
         time_t now;
+
         time(&now);
 
         localtime_r(&now, &current_time);
@@ -32,33 +43,49 @@ static void scheduler_task(void *arg)
                  current_time.tm_sec);
 
         reminder_t reminder;
+        int matched_index = -1;
 
-        if (schedule_get_next_reminder(&reminder))
+        /*
+         * Check whether a reminder exists for the
+         * current hour and minute.
+         */
+        if (schedule_get_reminder_at_time(
+                current_time.tm_hour,
+                current_time.tm_min,
+                &reminder,
+                &matched_index))
         {
             ESP_LOGI(TAG,
-                     "Checking Reminder: %s %02d:%02d",
+                     "Checking Reminder: [%d] %s %02d:%02d",
+                     matched_index,
                      reminder.medicine_name,
                      reminder.hour,
                      reminder.minute);
 
-            if (current_time.tm_hour == reminder.hour &&
-                current_time.tm_min == reminder.minute)
+            /*
+             * Trigger only if this particular reminder
+             * has not already been triggered.
+             */
+            if (matched_index != last_triggered_reminder)
             {
-                if (!reminder_triggered)
-                {
-                    reminder_triggered = true;
+                last_triggered_reminder = matched_index;
 
-                    ESP_LOGI(TAG,
-                             "Reminder Time Reached: %s",
-                             reminder.medicine_name);
+                ESP_LOGI(TAG,
+                         "Reminder Time Reached: %s",
+                         reminder.medicine_name);
 
-                    reminder_start();
-                }
+                reminder_start();
             }
-            else
-            {
-                reminder_triggered = false;
-            }
+        }
+        else
+        {
+            /*
+             * No reminder matches the current time.
+             *
+             * Reset the state so the next reminder can
+             * trigger normally.
+             */
+            last_triggered_reminder = -1;
         }
 
         display_show_home();

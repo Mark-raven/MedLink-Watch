@@ -18,6 +18,13 @@ void schedule_manager_init(void);
 
 bool schedule_get_next_reminder(reminder_t *reminder);
 
+bool schedule_get_reminder_at_time(
+    uint8_t hour,
+    uint8_t minute,
+    reminder_t *reminder,
+    int *matched_index
+);
+
 void schedule_set_reminder(
     uint8_t hour,
     uint8_t minute,
