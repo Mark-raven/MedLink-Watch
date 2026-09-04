@@ -12,19 +12,7 @@ void schedule_manager_init(void)
 {
     memset(reminders, 0, sizeof(reminders));
 
-    // Temporary test reminder
-    reminders[0].hour = 00;
-    reminders[0].minute = 29;
-
-    strcpy(reminders[0].medicine_name, "Vitamin D");
-
-    reminders[0].enabled = true;
-
-    ESP_LOGI(TAG,
-             "Test Reminder Loaded: %s %02d:%02d",
-             reminders[0].medicine_name,
-             reminders[0].hour,
-             reminders[0].minute);
+    ESP_LOGI(TAG, "Schedule Manager Initialized");
 }
 
 bool schedule_get_next_reminder(reminder_t *reminder)
@@ -34,14 +22,26 @@ bool schedule_get_next_reminder(reminder_t *reminder)
         return false;
     }
 
-    if (!reminders[0].enabled)
+    for (int i = 0; i < MAX_REMINDERS; i++)
     {
-        return false;
+        if (reminders[i].enabled)
+        {
+            *reminder = reminders[i];
+
+            ESP_LOGI(
+                TAG,
+                "Next Reminder: [%d] %s %02d:%02d",
+                i,
+                reminder->medicine_name,
+                reminder->hour,
+                reminder->minute
+            );
+
+            return true;
+        }
     }
 
-    *reminder = reminders[0];
-
-    return true;
+    return false;
 }
 
 void schedule_set_reminder(
@@ -50,26 +50,56 @@ void schedule_set_reminder(
     const char *medicine_name
 )
 {
-    reminders[0].hour = hour;
-    reminders[0].minute = minute;
+    if (medicine_name == NULL)
+    {
+        ESP_LOGE(TAG, "Medicine name is NULL");
+        return;
+    }
 
-    strncpy(
-        reminders[0].medicine_name,
-        medicine_name,
-        sizeof(reminders[0].medicine_name) - 1
+    for (int i = 0; i < MAX_REMINDERS; i++)
+    {
+        if (!reminders[i].enabled)
+        {
+            reminders[i].hour = hour;
+            reminders[i].minute = minute;
+
+            strncpy(
+                reminders[i].medicine_name,
+                medicine_name,
+                sizeof(reminders[i].medicine_name) - 1
+            );
+
+            reminders[i].medicine_name[
+                sizeof(reminders[i].medicine_name) - 1
+            ] = '\0';
+
+            reminders[i].enabled = true;
+
+            ESP_LOGI(
+                TAG,
+                "Reminder Stored: [%d] %s %02d:%02d",
+                i,
+                reminders[i].medicine_name,
+                reminders[i].hour,
+                reminders[i].minute
+            );
+
+            return;
+        }
+    }
+
+    ESP_LOGE(
+        TAG,
+        "No free reminder slots available"
     );
+}
 
-    reminders[0].medicine_name[
-        sizeof(reminders[0].medicine_name) - 1
-    ] = '\0';
-
-    reminders[0].enabled = true;
+void schedule_clear_all(void)
+{
+    memset(reminders, 0, sizeof(reminders));
 
     ESP_LOGI(
         TAG,
-        "Reminder Updated: %s %02d:%02d",
-        reminders[0].medicine_name,
-        reminders[0].hour,
-        reminders[0].minute
+        "All reminders cleared"
     );
 }

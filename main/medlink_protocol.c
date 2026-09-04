@@ -38,6 +38,10 @@ void medlink_process_packet(uint8_t *packet,
         case CMD_DISMISS:
             medlink_cmd_dismiss();
             break;
+        
+        case CMD_CLEAR_SCHEDULE:
+            medlink_cmd_clear_schedule();
+            break;
 
         default:
             ESP_LOGW(TAG, "Unknown command: 0x%02X", packet[0]);

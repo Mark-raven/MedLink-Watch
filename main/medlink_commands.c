@@ -154,6 +154,15 @@ void medlink_cmd_set_schedule(uint8_t *packet,
     medlink_notify("SCHEDULE OK");
 }
 
+void medlink_cmd_clear_schedule(void)
+{
+    ESP_LOGI(TAG, "CLEAR_SCHEDULE received");
+
+    schedule_clear_all();
+
+    medlink_notify("CLEAR OK");
+}
+
 void medlink_cmd_get_battery(void)
 {
     ESP_LOGI(TAG, "BATTERY not implemented");
