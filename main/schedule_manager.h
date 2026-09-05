@@ -12,6 +12,7 @@ typedef struct
     uint8_t hour;
     uint8_t minute;
     bool enabled;
+    bool triggered;
 } reminder_t;
 
 void schedule_manager_init(void);
@@ -30,6 +31,10 @@ void schedule_set_reminder(
     uint8_t minute,
     const char *medicine_name
 );
+
+void schedule_mark_triggered(int index);
+
+void schedule_reset_triggered(void);
 
 void schedule_clear_all(void);
 

@@ -38,7 +38,7 @@ bool schedule_get_next_reminder(reminder_t *reminder)
 
     for (int i = 0; i < MAX_REMINDERS; i++)
     {
-        if (!reminders[i].enabled)
+        if (reminders[i].triggered)
         {
             continue;
         }
@@ -125,6 +125,7 @@ void schedule_set_reminder(
             ] = '\0';
 
             reminders[i].enabled = true;
+            reminders[i].triggered = false;
 
             ESP_LOGI(
                 TAG,
@@ -184,6 +185,58 @@ bool schedule_get_reminder_at_time(
     }
 
     return false;
+}
+
+void schedule_mark_triggered(int index)
+{
+    if (index < 0 || index >= MAX_REMINDERS)
+    {
+        ESP_LOGE(
+            TAG,
+            "Invalid reminder index: %d",
+            index
+        );
+
+        return;
+    }
+
+    if (!reminders[index].enabled)
+    {
+        ESP_LOGE(
+            TAG,
+            "Reminder [%d] is not enabled",
+            index
+        );
+
+        return;
+    }
+
+    reminders[index].triggered = true;
+
+    ESP_LOGI(
+        TAG,
+        "Reminder marked as triggered: [%d] %s %02d:%02d",
+        index,
+        reminders[index].medicine_name,
+        reminders[index].hour,
+        reminders[index].minute
+    );
+}
+
+void schedule_reset_triggered(void)
+{
+    for (int i = 0; i < MAX_REMINDERS; i++)
+    {
+        if (reminders[i].enabled)
+        {
+            reminders[i].triggered = false;
+        }
+    }
+
+    ESP_LOGI(
+        TAG,
+        "Daily reminder trigger state reset"
+    );
 }
 
 
